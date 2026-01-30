@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 // ==================== RSS FEED CONFIG ====================
 
@@ -21,21 +21,29 @@ const CATEGORIES = [
   { key: 'dynasty', label: 'Dynasty' },
 ]
 
-// ==================== TWITTER/X ACCOUNTS ====================
+// ==================== ANALYST ACCOUNTS ====================
 
-const TWITTER_ACCOUNTS = [
-  { name: 'Adam Schefter', handle: 'AdamSchefter', outlet: 'ESPN', category: 'breaking' },
-  { name: 'Ian Rapoport', handle: 'RapSheet', outlet: 'NFL Network', category: 'breaking' },
-  { name: 'Matthew Berry', handle: 'MatthewBerryTMR', outlet: 'NBC Sports', category: 'fantasy' },
-  { name: 'Field Yates', handle: 'FieldYates', outlet: 'ESPN', category: 'fantasy' },
-  { name: 'Mike Clay', handle: 'MikeClayNFL', outlet: 'ESPN', category: 'analytics' },
-  { name: 'Fantasy Pros', handle: 'FantasyPros', outlet: 'FantasyPros', category: 'fantasy' },
-  { name: 'JJ Zachariason', handle: 'LateRoundQB', outlet: 'Late Round QB', category: 'analytics' },
-  { name: 'Dynasty Nerds', handle: 'DynastyNerds', outlet: 'Dynasty Nerds', category: 'dynasty' },
-  { name: 'Dynasty League Football', handle: 'DynastyLeague', outlet: 'DLF', category: 'dynasty' },
-  { name: 'Pat Fitzmaurice', handle: 'PatFitzmaurice', outlet: 'FantasyPros', category: 'fantasy' },
-  { name: 'Matt Kelley', handle: 'Fantasy_Mansion', outlet: 'PlayerProfiler', category: 'analytics' },
-  { name: 'Tom Pelissero', handle: 'TomPelissero', outlet: 'NFL Network', category: 'breaking' },
+const ANALYSTS = [
+  { name: 'Adam Schefter', handle: 'AdamSchefter', outlet: 'ESPN', category: 'breaking', description: 'NFL insider, breaking news and transactions' },
+  { name: 'Ian Rapoport', handle: 'RapSheet', outlet: 'NFL Network', category: 'breaking', description: 'NFL insider, injury reports and roster moves' },
+  { name: 'Tom Pelissero', handle: 'TomPelissero', outlet: 'NFL Network', category: 'breaking', description: 'NFL insider, contracts and breaking news' },
+  { name: 'Matthew Berry', handle: 'MatthewBerryTMR', outlet: 'NBC Sports', category: 'fantasy', description: 'Fantasy football analyst and advice' },
+  { name: 'Field Yates', handle: 'FieldYates', outlet: 'ESPN', category: 'fantasy', description: 'Fantasy analyst, waiver wire and rankings' },
+  { name: 'Mike Clay', handle: 'MikeClayNFL', outlet: 'ESPN', category: 'analytics', description: 'Projections, data-driven analysis' },
+  { name: 'Fantasy Pros', handle: 'FantasyPros', outlet: 'FantasyPros', category: 'fantasy', description: 'Consensus rankings and start/sit advice' },
+  { name: 'JJ Zachariason', handle: 'LateRoundQB', outlet: 'Late Round QB', category: 'analytics', description: 'Analytics-driven fantasy strategy' },
+  { name: 'Matt Kelley', handle: 'Fantasy_Mansion', outlet: 'PlayerProfiler', category: 'analytics', description: 'Advanced metrics and player profiles' },
+  { name: 'Pat Fitzmaurice', handle: 'PatFitzmaurice', outlet: 'FantasyPros', category: 'fantasy', description: 'Weekly rankings and matchup analysis' },
+  { name: 'Dynasty Nerds', handle: 'DynastyNerds', outlet: 'Dynasty Nerds', category: 'dynasty', description: 'Dynasty rankings, trades, and rookie analysis' },
+  { name: 'Dynasty League Football', handle: 'DynastyLeague', outlet: 'DLF', category: 'dynasty', description: 'Dynasty startup rankings and strategy' },
+]
+
+const ANALYST_CATEGORIES = [
+  { key: 'all', label: 'All' },
+  { key: 'breaking', label: 'Breaking News' },
+  { key: 'fantasy', label: 'Fantasy' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'dynasty', label: 'Dynasty' },
 ]
 
 // ==================== HELPERS ====================
@@ -57,89 +65,6 @@ function timeAgo(dateStr) {
   return then.toLocaleDateString()
 }
 
-// ==================== TWITTER TIMELINE COMPONENT ====================
-
-function TwitterTimeline({ handle, height = 600 }) {
-  const containerRef = useRef(null)
-  const [loaded, setLoaded] = useState(false)
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    setLoaded(false)
-    setFailed(false)
-    const node = containerRef.current
-    if (!node) return
-
-    node.innerHTML = ''
-
-    const anchor = document.createElement('a')
-    anchor.className = 'twitter-timeline'
-    anchor.setAttribute('data-height', String(height))
-    anchor.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light')
-    anchor.setAttribute('data-chrome', 'noheader nofooter noborders')
-    anchor.href = `https://x.com/${handle}`
-    anchor.textContent = `Loading @${handle}...`
-    node.appendChild(anchor)
-
-    const loadWidgets = () => {
-      if (window.twttr && window.twttr.widgets) {
-        window.twttr.widgets.load(node).then(() => {
-          // Check if an iframe was actually rendered
-          setTimeout(() => {
-            const iframe = node.querySelector('iframe')
-            if (iframe) {
-              setLoaded(true)
-            } else {
-              setFailed(true)
-            }
-          }, 3000)
-        })
-      }
-    }
-
-    if (window.twttr && window.twttr.widgets) {
-      loadWidgets()
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://platform.x.com/widgets.js'
-      script.async = true
-      script.charset = 'utf-8'
-      script.onload = loadWidgets
-      script.onerror = () => setFailed(true)
-      document.head.appendChild(script)
-    }
-
-    return () => {
-      node.innerHTML = ''
-    }
-  }, [handle, height])
-
-  return (
-    <div className="twitter-timeline-wrapper">
-      {!loaded && !failed && (
-        <div className="timeline-loading">
-          <div className="loading-spinner" />
-          <p>Loading timeline...</p>
-        </div>
-      )}
-      {failed && (
-        <div className="timeline-failed">
-          <p>Timeline unavailable. Visit their profile directly:</p>
-          <a
-            href={`https://x.com/${handle}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="timeline-fallback-link"
-          >
-            @{handle} on X
-          </a>
-        </div>
-      )}
-      <div ref={containerRef} className="twitter-timeline-container" />
-    </div>
-  )
-}
-
 // ==================== MAIN NEWS COMPONENT ====================
 
 function News() {
@@ -149,7 +74,7 @@ function News() {
   const [error, setError] = useState('')
   const [sourceFilter, setSourceFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [selectedAccount, setSelectedAccount] = useState(TWITTER_ACCOUNTS[0])
+  const [analystFilter, setAnalystFilter] = useState('all')
 
   const fetchNews = async () => {
     setLoading(true)
@@ -179,9 +104,13 @@ function News() {
     }
   }, [sourceFilter, tab])
 
-  const filtered = categoryFilter === 'all'
+  const filteredArticles = categoryFilter === 'all'
     ? articles
     : articles.filter(a => a.category === categoryFilter)
+
+  const filteredAnalysts = analystFilter === 'all'
+    ? ANALYSTS
+    : ANALYSTS.filter(a => a.category === analystFilter)
 
   return (
     <div className="news-container">
@@ -203,17 +132,16 @@ function News() {
           Articles
         </button>
         <button
-          className={`news-tab ${tab === 'twitter' ? 'active' : ''}`}
-          onClick={() => setTab('twitter')}
+          className={`news-tab ${tab === 'analysts' ? 'active' : ''}`}
+          onClick={() => setTab('analysts')}
         >
-          Analyst Feeds (X)
+          Analysts
         </button>
       </div>
 
       {/* ==================== ARTICLES TAB ==================== */}
       {tab === 'articles' && (
         <>
-          {/* Filters */}
           <div className="news-filters">
             <div className="news-filter-group">
               {SOURCES.map(s => (
@@ -252,15 +180,15 @@ function News() {
             </div>
           )}
 
-          {!loading && !error && filtered.length === 0 && (
+          {!loading && !error && filteredArticles.length === 0 && (
             <div className="news-empty">
               No articles found. Try a different source or category.
             </div>
           )}
 
-          {!loading && filtered.length > 0 && (
+          {!loading && filteredArticles.length > 0 && (
             <div className="news-articles">
-              {filtered.map((article, i) => (
+              {filteredArticles.map((article, i) => (
                 <a
                   key={i}
                   href={article.link}
@@ -283,44 +211,62 @@ function News() {
         </>
       )}
 
-      {/* ==================== TWITTER TAB ==================== */}
-      {tab === 'twitter' && (
-        <div className="news-twitter-layout">
-          <div className="news-sidebar">
-            <div className="news-sidebar-header">Analysts</div>
-            {TWITTER_ACCOUNTS.map(account => (
-              <button
-                key={account.handle}
-                className={`analyst-btn ${selectedAccount.handle === account.handle ? 'active' : ''}`}
-                onClick={() => setSelectedAccount(account)}
-              >
-                <div className="analyst-name">{account.name}</div>
-                <div className="analyst-outlet">@{account.handle} &middot; {account.outlet}</div>
-              </button>
-            ))}
+      {/* ==================== ANALYSTS TAB ==================== */}
+      {tab === 'analysts' && (
+        <>
+          <div className="news-filters">
+            <div className="news-filter-group">
+              {ANALYST_CATEGORIES.map(c => (
+                <button
+                  key={c.key}
+                  className={`news-filter-btn ${analystFilter === c.key ? 'active' : ''}`}
+                  onClick={() => setAnalystFilter(c.key)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="news-timeline">
-            <div className="news-timeline-header">
-              <div>
-                <strong>{selectedAccount.name}</strong>
-                <span className="news-handle">@{selectedAccount.handle}</span>
+          <div className="analyst-grid">
+            {filteredAnalysts.map(analyst => (
+              <div key={analyst.handle} className="analyst-card">
+                <div className="analyst-card-header">
+                  <div className="analyst-card-avatar">
+                    {analyst.name.charAt(0)}
+                  </div>
+                  <div className="analyst-card-info">
+                    <div className="analyst-card-name">{analyst.name}</div>
+                    <div className="analyst-card-handle">@{analyst.handle}</div>
+                  </div>
+                  <span className={`analyst-card-badge ${analyst.category}`}>
+                    {analyst.category}
+                  </span>
+                </div>
+                <p className="analyst-card-desc">{analyst.description}</p>
+                <div className="analyst-card-outlet">{analyst.outlet}</div>
+                <div className="analyst-card-actions">
+                  <a
+                    href={`https://x.com/${analyst.handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="analyst-card-link x-link"
+                  >
+                    View on X
+                  </a>
+                  <a
+                    href={`https://x.com/intent/follow?screen_name=${analyst.handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="analyst-card-link follow-link"
+                  >
+                    Follow
+                  </a>
+                </div>
               </div>
-              <a
-                href={`https://x.com/${selectedAccount.handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="news-follow-link"
-              >
-                View on X
-              </a>
-            </div>
-            <TwitterTimeline
-              handle={selectedAccount.handle}
-              height={600}
-            />
+            ))}
           </div>
-        </div>
+        </>
       )}
     </div>
   )
