@@ -416,6 +416,77 @@ function getMockResponse(message) {
   return "I'm your 1QB 0.5 PPR dynasty assistant! I can help with:\n- Trade analysis (RBs/WRs are king, QBs are devalued)\n- Player valuations\n- Start/sit decisions\n- Lineup advice\n\nWhat would you like to know?";
 }
 
+// News RSS endpoint
+const RSS_FEEDS = {
+  espn: { name: 'ESPN Fantasy', url: 'https://www.espn.com/espn/rss/nfl/news', category: 'general' },
+  nfl: { name: 'NFL News', url: 'https://www.nfl.com/rss/rsslanding?searchString=home', category: 'breaking' },
+  fantasypros: { name: 'FantasyPros', url: 'https://www.fantasypros.com/nfl/rss/news.xml', category: 'general' },
+  rotowire: { name: 'RotoWire', url: 'https://www.rotowire.com/rss/nfl.xml', category: 'analytics' },
+  cbssports: { name: 'CBS Sports Fantasy', url: 'https://www.cbssports.com/rss/headlines/fantasy', category: 'general' },
+};
+
+function extractTag(xml, tag) {
+  const regex = new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
+  const match = xml.match(regex);
+  if (!match) return '';
+  return (match[1] || match[2] || '').trim();
+}
+
+function extractItems(xml) {
+  const items = [];
+  const itemRegex = /<item[\s>]([\s\S]*?)<\/item>/gi;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const block = match[1];
+    const title = extractTag(block, 'title');
+    const link = extractTag(block, 'link');
+    const description = extractTag(block, 'description');
+    const pubDate = extractTag(block, 'pubDate');
+    if (title) {
+      const cleanDesc = description.replace(/<[^>]*>/g, '').slice(0, 200);
+      items.push({ title, link, description: cleanDesc, pubDate });
+    }
+  }
+  return items;
+}
+
+app.get('/api/news', async (req, res) => {
+  const { source } = req.query;
+  const feedKeys = source && RSS_FEEDS[source] ? [source] : Object.keys(RSS_FEEDS);
+  const results = [];
+
+  await Promise.allSettled(
+    feedKeys.map(async (key) => {
+      const feed = RSS_FEEDS[key];
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(feed.url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'FantasyTradeCalculator/1.0', 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
+        });
+        clearTimeout(timeout);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const xml = await response.text();
+        const items = extractItems(xml).slice(0, 10);
+        items.forEach(item => {
+          results.push({ ...item, source: feed.name, sourceKey: key, category: feed.category });
+        });
+      } catch (err) {
+        console.error(`Failed to fetch ${feed.name}:`, err.message);
+      }
+    })
+  );
+
+  results.sort((a, b) => {
+    const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
+    const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
+    return db - da;
+  });
+
+  res.status(200).json({ articles: results });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
