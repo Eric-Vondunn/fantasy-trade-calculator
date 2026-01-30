@@ -6,6 +6,7 @@ import WeatherWidget from './components/WeatherWidget'
 import ChatBot from './components/ChatBot'
 import Curveball from './components/Curveball'
 import PlayerComparison from './components/PlayerComparison'
+import News from './components/News'
 
 function App() {
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -35,6 +36,7 @@ function App() {
           <Route path="/compare" element={<PlayerComparison />} />
           <Route path="/weather" element={<WeatherWidget />} />
           <Route path="/curveball" element={<Curveball />} />
+          <Route path="/news" element={<News />} />
         </Routes>
       </main>
       <ChatBot />

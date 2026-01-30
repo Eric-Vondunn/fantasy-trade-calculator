@@ -54,6 +54,15 @@ function Navbar() {
           </li>
           <li>
             <Link
+              to="/news"
+              className={isActive('/news') ? 'active' : ''}
+              onClick={() => setIsOpen(false)}
+            >
+              News
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/curveball"
               className={isActive('/curveball') ? 'active' : ''}
               onClick={() => setIsOpen(false)}

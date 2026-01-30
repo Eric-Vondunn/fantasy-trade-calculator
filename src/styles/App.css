@@ -1747,6 +1747,162 @@ body {
 }
 
 /* ==========================================
+   NEWS PAGE
+   ========================================== */
+
+.news-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.news-container h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-blue);
+  margin-bottom: 0.25rem;
+}
+
+.news-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.news-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.news-filter-btn {
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.news-filter-btn.active {
+  background: var(--dark-blue);
+  color: white;
+  border-color: var(--dark-blue);
+}
+
+.news-filter-btn:hover:not(.active) {
+  border-color: var(--dark-blue);
+  color: var(--dark-blue);
+}
+
+.news-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.news-sidebar {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.news-sidebar-header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--dark-blue);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.analyst-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.analyst-btn:last-child {
+  border-bottom: none;
+}
+
+.analyst-btn:hover {
+  background: var(--bg-card-hover);
+}
+
+.analyst-btn.active {
+  background: var(--bg-card-hover);
+  border-left: 3px solid var(--dark-blue);
+}
+
+.analyst-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.analyst-outlet {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.news-timeline {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.news-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.news-handle {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.news-follow-link {
+  font-size: 0.85rem;
+  color: var(--dark-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.news-follow-link:hover {
+  text-decoration: underline;
+}
+
+.twitter-timeline-container {
+  min-height: 400px;
+}
+
+.timeline-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+  gap: 0.75rem;
+}
+
+/* ==========================================
    RESPONSIVE DESIGN - Mobile Optimization
    ========================================== */
 
@@ -2169,6 +2325,43 @@ body {
 
   .memory-add-form input {
     font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  /* News */
+  .news-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .news-sidebar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  .news-sidebar-header {
+    display: none;
+  }
+
+  .analyst-btn {
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+    border-bottom: none;
+    border-right: 1px solid var(--border-color);
+    white-space: nowrap;
+  }
+
+  .analyst-btn.active {
+    border-left: none;
+    border-bottom: 3px solid var(--dark-blue);
+  }
+
+  .analyst-outlet {
+    display: none;
+  }
+
+  .news-container h1 {
+    font-size: 1.5rem;
   }
 
   /* Toast */
