@@ -1,39 +1,11 @@
 const RSS_FEEDS = {
-  espn: {
-    name: 'ESPN Fantasy',
-    url: 'https://www.espn.com/espn/rss/nfl/news',
-    category: 'general',
-  },
-  nfl: {
-    name: 'NFL News',
-    url: 'https://www.nfl.com/rss/rsslanding?searchString=home',
-    category: 'breaking',
-  },
-  fantasypros: {
-    name: 'FantasyPros',
-    url: 'https://www.fantasypros.com/nfl/rss/news.xml',
-    category: 'general',
-  },
-  rotowire: {
-    name: 'RotoWire',
-    url: 'https://www.rotowire.com/rss/nfl.xml',
-    category: 'analytics',
-  },
-  bleacher: {
-    name: 'Bleacher Report',
-    url: 'https://bleacherreport.com/articles/feed',
-    category: 'general',
-  },
-  pff: {
-    name: 'PFF',
-    url: 'https://www.pff.com/rss/nfl.xml',
-    category: 'analytics',
-  },
-  cbssports: {
-    name: 'CBS Sports Fantasy',
-    url: 'https://www.cbssports.com/rss/headlines/fantasy',
-    category: 'general',
-  },
+  espn: { name: 'ESPN', url: 'https://www.espn.com/espn/rss/nfl/news', category: 'breaking' },
+  pft: { name: 'Pro Football Talk', url: 'https://profootballtalk.nbcsports.com/feed/', category: 'breaking' },
+  cbssports: { name: 'CBS Sports', url: 'https://www.cbssports.com/rss/headlines/nfl/', category: 'general' },
+  yahoo: { name: 'Yahoo Sports', url: 'https://sports.yahoo.com/nfl/rss/', category: 'general' },
+  fantasypros: { name: 'FantasyPros', url: 'https://www.fantasypros.com/feed/', category: 'fantasy' },
+  rotoballer: { name: 'RotoBaller', url: 'https://www.rotoballer.com/feed', category: 'fantasy' },
+  dlf: { name: 'Dynasty League Football', url: 'https://dynastyleaguefootball.com/feed/', category: 'dynasty' },
 }
 
 // Simple XML tag extractor (no dependency needed)
