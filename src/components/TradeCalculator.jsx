@@ -477,22 +477,6 @@ function TradeCalculator() {
         </div>
       )}
 
-      {/* Info Card */}
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h3 className="card-header">About Dynasty Values</h3>
-        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Dynasty values are aggregated from 4 major sources: Dynasty League Football (DLF),
-          Under The Helmet (UTH), Dynasty Nerds, and FantasyPros. Values are adjusted based on:
-        </p>
-        <ul style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
-          <li>Position scarcity (RBs get slight premium due to shorter careers)</li>
-          <li>Age relative to position peak (younger = more valuable)</li>
-          <li>Contract years remaining</li>
-        </ul>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.875rem' }}>
-          Last updated: January 28, 2026 | Press <kbd style={{ padding: '2px 6px', background: 'var(--bg-card-hover)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>Shift + ?</kbd> for keyboard shortcuts
-        </p>
-      </div>
     </div>
   )
 }
