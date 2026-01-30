@@ -416,6 +416,93 @@ function getMockResponse(message) {
   return "I'm your 1QB 0.5 PPR dynasty assistant! I can help with:\n- Trade analysis (RBs/WRs are king, QBs are devalued)\n- Player valuations\n- Start/sit decisions\n- Lineup advice\n\nWhat would you like to know?";
 }
 
+// Leaderboard API endpoint (Supabase proxy)
+app.get('/api/leaderboard', async (req, res) => {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ error: 'Supabase not configured' });
+  }
+
+  const headers = {
+    'apikey': supabaseKey,
+    'Authorization': `Bearer ${supabaseKey}`,
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/leaderboard?select=name,score,level,created_at&order=score.desc&limit=10`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Supabase GET error:', error);
+      return res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    }
+
+    const data = await response.json();
+    const entries = data.map(row => ({
+      name: row.name,
+      score: row.score,
+      level: row.level,
+      date: new Date(row.created_at).toLocaleDateString()
+    }));
+
+    return res.status(200).json({ leaderboard: entries });
+  } catch (error) {
+    console.error('Leaderboard GET error:', error);
+    return res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
+app.post('/api/leaderboard', async (req, res) => {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return res.status(500).json({ error: 'Supabase not configured' });
+  }
+
+  const { name, score, level } = req.body;
+
+  if (!name || score == null || level == null) {
+    return res.status(400).json({ error: 'name, score, and level are required' });
+  }
+
+  const headers = {
+    'apikey': supabaseKey,
+    'Authorization': `Bearer ${supabaseKey}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/leaderboard`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name, score, level })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Supabase POST error:', error);
+      return res.status(500).json({ error: 'Failed to save score' });
+    }
+
+    const data = await response.json();
+    return res.status(201).json({ entry: data[0] });
+  } catch (error) {
+    console.error('Leaderboard POST error:', error);
+    return res.status(500).json({ error: 'Failed to save score' });
+  }
+});
+
 // News RSS endpoint
 const RSS_FEEDS = {
   espn: { name: 'ESPN', url: 'https://www.espn.com/espn/rss/nfl/news', category: 'breaking' },
@@ -494,4 +581,5 @@ app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
   console.log('Anthropic API Key:', process.env.ANTHROPIC_API_KEY ? 'Configured' : 'Not configured (using mock)');
   console.log('Weather API Key:', process.env.OPENWEATHERMAP_API_KEY ? 'Configured' : 'Not configured (using mock)');
+  console.log('Supabase:', process.env.SUPABASE_URL ? 'Configured' : 'Not configured');
 });

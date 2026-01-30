@@ -23,40 +23,45 @@ function Curveball() {
     gameStatusRef.current = gameStatus
   }, [gameStatus])
 
-  // Load leaderboard from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('curveballLeaderboard')
-    if (saved) {
-      setLeaderboard(JSON.parse(saved))
+  // Load leaderboard from API
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const res = await fetch('/api/leaderboard')
+      if (res.ok) {
+        const data = await res.json()
+        setLeaderboard(data.leaderboard || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch leaderboard:', err)
     }
   }, [])
 
-  // Save leaderboard to localStorage
-  const saveLeaderboard = (newLeaderboard) => {
-    localStorage.setItem('curveballLeaderboard', JSON.stringify(newLeaderboard))
-    setLeaderboard(newLeaderboard)
-  }
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [fetchLeaderboard])
 
   // Check if score qualifies for leaderboard
   const isHighScoreCheck = useCallback((checkScore) => {
-    const saved = localStorage.getItem('curveballLeaderboard')
-    const board = saved ? JSON.parse(saved) : []
-    if (board.length < 10) return true
-    return checkScore > board[board.length - 1].score
-  }, [])
+    if (leaderboard.length < 10) return true
+    return checkScore > leaderboard[leaderboard.length - 1].score
+  }, [leaderboard])
 
   // Add score to leaderboard
-  const addToLeaderboard = (name, newScore) => {
-    const newEntry = {
-      name: name.trim() || 'Anonymous',
-      score: newScore,
-      date: new Date().toLocaleDateString(),
-      level: levelRef.current
+  const addToLeaderboard = async (name, newScore) => {
+    try {
+      await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim() || 'Anonymous',
+          score: newScore,
+          level: levelRef.current
+        })
+      })
+      await fetchLeaderboard()
+    } catch (err) {
+      console.error('Failed to save score:', err)
     }
-    const newLeaderboard = [...leaderboard, newEntry]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10)
-    saveLeaderboard(newLeaderboard)
     setGameStatus('menu')
     setPlayerName('')
   }
