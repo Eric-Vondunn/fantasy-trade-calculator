@@ -650,42 +650,6 @@ body {
 }
 
 /* Quick Add Buttons */
-.quick-add-section {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.quick-add-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-}
-
-.quick-add-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.quick-add-btn {
-  padding: 0.5rem 0.75rem;
-  background: var(--bg-card-hover);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  color: var(--text-primary);
-}
-
-.quick-add-btn:hover {
-  border-color: var(--dark-blue);
-  background: rgba(96, 165, 250, 0.1);
-}
-
 /* Trade History */
 .trade-history {
   margin-top: 2rem;
@@ -1564,6 +1528,81 @@ body {
   border: 1px solid var(--border-color);
 }
 
+/* Trade Balancing Suggestions */
+.trade-suggestions {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-card-hover);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.trade-suggestions h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.trade-suggestions-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.trade-suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trade-suggestion-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.trade-suggestion-btn:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-main);
+}
+
+.suggestion-player-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.suggestion-pos {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.suggestion-pos.QB { background: #e8d5f5; color: #7b2d8e; }
+.suggestion-pos.RB { background: #d5f5e3; color: #1a7a3a; }
+.suggestion-pos.WR { background: #d5e8f5; color: #2d5f8e; }
+.suggestion-pos.TE { background: #f5e8d5; color: #8e5f2d; }
+.suggestion-pos.PICK { background: #f0f0f0; color: #555; }
+
+.suggestion-name {
+  font-weight: 500;
+}
+
+.suggestion-value {
+  font-weight: 600;
+  color: var(--accent-color);
+  font-size: 0.85rem;
+}
+
 /* Trade Action Buttons */
 .trade-action-buttons {
   margin-top: 1.5rem;
@@ -2112,11 +2151,6 @@ body {
     justify-content: center;
   }
 
-  .quick-add-btn {
-    min-height: 44px;
-    padding: 0.5rem 0.75rem;
-  }
-
   .suggestion-chip {
     min-height: 40px;
     padding: 0.5rem 0.75rem;
@@ -2269,6 +2303,12 @@ body {
     gap: 0.25rem;
   }
 
+  /* Trade Suggestions */
+  .trade-suggestion-btn {
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+
   /* Player Card */
   .player-card {
     padding: 0.625rem;
@@ -2304,21 +2344,6 @@ body {
 
   .search-keyboard-hint {
     display: none; /* Hide keyboard hints on mobile */
-  }
-
-  .quick-add-section {
-    margin-top: 0.5rem;
-  }
-
-  .quick-add-buttons {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.35rem;
-  }
-
-  .quick-add-btn {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
   }
 
   /* Weather Widget */
@@ -2628,10 +2653,6 @@ body {
 
   .forecast-temp {
     font-size: 1rem;
-  }
-
-  .quick-add-buttons {
-    justify-content: center;
   }
 
   .comparison-stat-label {

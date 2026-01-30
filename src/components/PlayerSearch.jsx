@@ -2,14 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { searchPlayers, getAggregateRanking, getPlayerById } from '../data/players'
 import { formatValue, calculateAdjustedValue } from '../utils/tradeLogic'
 
-const QUICK_PICKS = [
-  { label: '2026 1st', query: '2026 Pick 1' },
-  { label: '2026 2nd', query: '2026 Pick 2' },
-  { label: '2027 1st', query: '2027 Pick 1' },
-  { label: '2027 2nd', query: '2027 Pick 2' },
-  { label: '2028 1st', query: '2028 Pick 1' },
-]
-
 function PlayerSearch({ onSelect, excludeIds = [] }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -87,14 +79,6 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
     }
   }
 
-  const handleQuickAdd = (pickQuery) => {
-    const filtered = searchPlayers(pickQuery)
-      .filter(p => !excludeIds.includes(p.id))
-    if (filtered.length > 0) {
-      handleSelect(filtered[0])
-    }
-  }
-
   return (
     <div className="player-search" ref={wrapperRef}>
       <span className="player-search-icon">🔍</span>
@@ -149,20 +133,6 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
         </div>
       )}
 
-      <div className="quick-add-section">
-        <div className="quick-add-label">Quick Add Picks</div>
-        <div className="quick-add-buttons">
-          {QUICK_PICKS.map(pick => (
-            <button
-              key={pick.label}
-              className="quick-add-btn"
-              onClick={() => handleQuickAdd(pick.query)}
-            >
-              {pick.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

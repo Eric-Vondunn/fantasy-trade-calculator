@@ -36,8 +36,8 @@ const getAgeMultiplier = (age, position) => {
   const peakAge = position === 'QB' ? 30 : position === 'RB' ? 25 : 26;
   const ageDiff = age - peakAge;
 
-  if (ageDiff <= -4) return 1.15;  // Very young, premium
-  if (ageDiff <= -1) return 1.08;  // Young, entering prime
+  if (ageDiff <= -4) return 1.075; // Very young, modest premium
+  if (ageDiff <= -1) return 1.04;  // Young, entering prime
   if (ageDiff <= 2) return 1.0;    // In prime
   if (ageDiff <= 4) return 0.88;   // Starting decline
   if (ageDiff <= 6) return 0.72;   // Declining

@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import PlayerSearch from './PlayerSearch'
 import PlayerCard from './PlayerCard'
 import Confetti from './Confetti'
 import { useToast } from './Toast'
 import { useTradeHistory, useWatchlist } from '../hooks/useLocalStorage'
+import { players } from '../data/players'
 import {
   calculateSideValue,
   calculateFairness,
   getFairnessLabel,
   getTradeRecommendation,
   formatValue,
-  getValueDifference
+  getValueDifference,
+  calculateAdjustedValue
 } from '../utils/tradeLogic'
 
 function TradeCalculator() {
@@ -162,6 +164,35 @@ function TradeCalculator() {
 
   const hasTrade = teamAPlayers.length > 0 && teamBPlayers.length > 0
   const hasAnyPlayers = teamAPlayers.length > 0 || teamBPlayers.length > 0
+
+  // Calculate trade-balancing suggestions
+  const tradeSuggestions = useMemo(() => {
+    if (!hasTrade || fairnessInfo.class === 'fair') return null
+
+    const diff = Math.abs(teamAValue - teamBValue)
+    if (diff === 0) return null
+
+    const losingSide = teamAValue < teamBValue ? 'A' : 'B'
+    const excludeIds = new Set(allSelectedIds)
+
+    // Find players closest to the value difference
+    const candidates = players
+      .filter(p => !excludeIds.has(p.id) && p.dynastyValue > 0)
+      .map(p => ({
+        player: p,
+        adjustedValue: calculateAdjustedValue(p),
+      }))
+      .map(c => ({
+        ...c,
+        gap: Math.abs(c.adjustedValue - diff),
+      }))
+      .sort((a, b) => a.gap - b.gap)
+      .slice(0, 3)
+
+    if (candidates.length === 0) return null
+
+    return { losingSide, diff, candidates }
+  }, [hasTrade, teamAValue, teamBValue, fairnessInfo.class, allSelectedIds])
 
   // Trigger confetti on fair trade
   useEffect(() => {
@@ -351,6 +382,37 @@ function TradeCalculator() {
                     <span>{item.detail}</span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Trade Balancing Suggestions */}
+            {tradeSuggestions && (
+              <div className="trade-suggestions">
+                <h4>Balance the Trade</h4>
+                <p className="trade-suggestions-desc">
+                  Add one of these players to Team {tradeSuggestions.losingSide} to even it out ({formatValue(tradeSuggestions.diff)} gap):
+                </p>
+                <div className="trade-suggestions-list">
+                  {tradeSuggestions.candidates.map(({ player, adjustedValue }) => (
+                    <button
+                      key={player.id}
+                      className="trade-suggestion-btn"
+                      onClick={() => {
+                        if (tradeSuggestions.losingSide === 'A') {
+                          handleAddToTeamA(player)
+                        } else {
+                          handleAddToTeamB(player)
+                        }
+                      }}
+                    >
+                      <div className="suggestion-player-info">
+                        <span className={`suggestion-pos ${player.position}`}>{player.position}</span>
+                        <span className="suggestion-name">{player.name}</span>
+                      </div>
+                      <span className="suggestion-value">{formatValue(adjustedValue)}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
