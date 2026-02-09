@@ -7,6 +7,7 @@ import ChatBot from './components/ChatBot'
 import Curveball from './components/Curveball'
 import PlayerComparison from './components/PlayerComparison'
 import News from './components/News'
+import Rookies from './components/Rookies'
 
 function App() {
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -34,6 +35,7 @@ function App() {
         <Routes>
           <Route path="/" element={<TradeCalculator />} />
           <Route path="/compare" element={<PlayerComparison />} />
+          <Route path="/rookies" element={<Rookies />} />
           <Route path="/weather" element={<WeatherWidget />} />
           <Route path="/curveball" element={<Curveball />} />
           <Route path="/news" element={<News />} />

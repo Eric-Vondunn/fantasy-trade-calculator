@@ -4135,3 +4135,429 @@ a:focus-visible {
   height: 1em;
   width: 30%;
 }
+
+/* ============================================
+   ROOKIES PAGE
+   ============================================ */
+
+.rookies-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.rookies-header {
+  margin-bottom: 1.5rem;
+}
+
+.rookies-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dark-blue);
+  margin: 0 0 0.5rem;
+}
+
+.rookies-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.rookies-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: var(--red);
+}
+
+.rookies-error h2 {
+  margin: 0 0 0.5rem;
+}
+
+/* Filters */
+.rookies-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.rookies-filters .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rookies-filters .filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rookies-filters select,
+.rookies-filters input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  min-width: 120px;
+}
+
+.rookies-filters select:focus,
+.rookies-filters input:focus {
+  outline: none;
+  border-color: var(--light-blue);
+}
+
+.rookies-filters .search-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rookies-filters .search-group input {
+  width: 100%;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.toggle-btn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toggle-btn:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.toggle-btn:last-child {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+
+.toggle-btn.active {
+  background: var(--light-blue);
+  color: white;
+  border-color: var(--light-blue);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: var(--bg-hover);
+}
+
+.rookies-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+/* Table Wrapper */
+.rookies-table-wrapper {
+  overflow-x: auto;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+/* Table */
+.rookies-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.rookies-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.rookies-table th {
+  background: var(--bg-card);
+  border-bottom: 2px solid var(--border-color);
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+}
+
+.rookies-table th:hover {
+  background: var(--bg-hover);
+}
+
+.rookies-table th.numeric,
+.rookies-table td.numeric {
+  text-align: right;
+}
+
+.rookies-table td {
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.rookies-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.rookies-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+/* Sticky columns */
+.rookies-table .sticky-col {
+  position: sticky;
+  background: var(--bg-card);
+  z-index: 1;
+}
+
+.rookies-table .rank-col {
+  left: 0;
+  width: 60px;
+  min-width: 60px;
+}
+
+.rookies-table .name-col {
+  left: 60px;
+  min-width: 180px;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.rookies-table tbody tr:hover .sticky-col {
+  background: var(--bg-hover);
+}
+
+/* Rank badge */
+.rank-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-hover);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Player name cell */
+.player-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-badge {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: white;
+}
+
+.pos-badge.QB { background: var(--qb-color, #ff6b6b); }
+.pos-badge.RB { background: var(--rb-color, #4dabf7); }
+.pos-badge.WR { background: var(--wr-color, #69db7c); }
+.pos-badge.TE { background: var(--te-color, #ffd43b); color: #333; }
+
+.player-name {
+  font-weight: 500;
+}
+
+/* Trait columns */
+.rookies-table .trait-col {
+  color: var(--text-secondary);
+}
+
+/* Score columns */
+.rookies-table .score-col {
+  font-weight: 600;
+}
+
+.score-value {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  background: var(--bg-hover);
+  border-radius: 4px;
+}
+
+/* Overall score with color coding */
+.overall-score {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.overall-score.elite {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--green);
+}
+
+.overall-score.excellent {
+  background: rgba(33, 150, 243, 0.2);
+  color: var(--light-blue);
+}
+
+.overall-score.good {
+  background: rgba(255, 193, 7, 0.2);
+  color: #f9a825;
+}
+
+.overall-score.average {
+  background: rgba(158, 158, 158, 0.2);
+  color: var(--text-secondary);
+}
+
+.overall-score.below {
+  background: rgba(244, 67, 54, 0.2);
+  color: var(--red);
+}
+
+/* Overall column highlight */
+.rookies-table .overall-col {
+  background: rgba(96, 165, 250, 0.05);
+}
+
+.rookies-table thead .overall-col {
+  background: var(--bg-card);
+}
+
+/* No results */
+.no-results {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.no-results button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--light-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Legend */
+.rookies-legend {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.rookies-legend h4 {
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--text-secondary);
+}
+
+.legend-note {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .rookies-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .rookies-filters {
+    flex-direction: column;
+  }
+
+  .rookies-filters .filter-group {
+    width: 100%;
+  }
+
+  .rookies-filters select,
+  .rookies-filters input[type="text"] {
+    width: 100%;
+  }
+
+  .toggle-buttons {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .rookies-table {
+    font-size: 0.75rem;
+  }
+
+  .rookies-table th,
+  .rookies-table td {
+    padding: 0.5rem 0.375rem;
+  }
+
+  .rookies-table .name-col {
+    min-width: 140px;
+  }
+
+  .mobile-hide {
+    display: none;
+  }
+
+  .legend-items {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rookies-page {
+    padding: 0.5rem;
+  }
+
+  .rookies-table .rank-col {
+    width: 45px;
+    min-width: 45px;
+  }
+
+  .rookies-table .name-col {
+    left: 45px;
+    min-width: 120px;
+  }
+
+  .pos-badge {
+    display: none;
+  }
+}
