@@ -1,33 +1,80 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import PlayerSearch from './PlayerSearch'
 import PlayerCard from './PlayerCard'
 import Confetti from './Confetti'
+import LeagueSettings from './LeagueSettings'
 import { useToast } from './Toast'
 import { useTradeHistory, useWatchlist } from '../hooks/useLocalStorage'
-import { players } from '../data/players'
+import { useLeagueSettings } from '../context/LeagueSettingsContext'
+import { players, getPlayerById } from '../data/players'
 import {
-  calculateSideValue,
-  calculateFairness,
-  getFairnessLabel,
-  getTradeRecommendation,
+  calculateSideValueWithContext,
+  analyzeTrade,
   formatValue,
-  getValueDifference,
-  calculateAdjustedValue
-} from '../utils/tradeLogic'
+  getPlayerValueBreakdown
+} from '../utils/valueEngine'
 
 function TradeCalculator() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [teamAPlayers, setTeamAPlayers] = useState([])
   const [teamBPlayers, setTeamBPlayers] = useState([])
   const [undoStack, setUndoStack] = useState([])
   const [showConfetti, setShowConfetti] = useState(false)
   const [dragOverSide, setDragOverSide] = useState(null)
+  const [showSettings, setShowSettings] = useState(false)
   const confettiKey = useRef(0)
+  const initialLoadDone = useRef(false)
 
   const toast = useToast()
   const { history, addTrade, clearHistory } = useTradeHistory()
   const { isWatched, toggleWatchlist } = useWatchlist()
+  const { settings, multipliers, replacementLevels } = useLeagueSettings()
+
+  // Build settings object for value engine
+  const valueSettings = useMemo(() => ({
+    ...settings,
+    multipliers,
+    replacementLevels
+  }), [settings, multipliers, replacementLevels])
 
   const allSelectedIds = [...teamAPlayers, ...teamBPlayers].map(p => p.id)
+
+  // Load trade from URL params on mount
+  useEffect(() => {
+    if (initialLoadDone.current) return
+    initialLoadDone.current = true
+
+    const teamAIds = searchParams.get('a')
+    const teamBIds = searchParams.get('b')
+
+    if (teamAIds) {
+      const ids = teamAIds.split(',').map(Number).filter(Boolean)
+      const foundPlayers = ids.map(id => getPlayerById(id)).filter(Boolean)
+      if (foundPlayers.length > 0) setTeamAPlayers(foundPlayers)
+    }
+
+    if (teamBIds) {
+      const ids = teamBIds.split(',').map(Number).filter(Boolean)
+      const foundPlayers = ids.map(id => getPlayerById(id)).filter(Boolean)
+      if (foundPlayers.length > 0) setTeamBPlayers(foundPlayers)
+    }
+  }, [searchParams])
+
+  // Update URL when trade changes
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (teamAPlayers.length > 0) {
+      params.set('a', teamAPlayers.map(p => p.id).join(','))
+    }
+    if (teamBPlayers.length > 0) {
+      params.set('b', teamBPlayers.map(p => p.id).join(','))
+    }
+    const newSearch = params.toString()
+    if (newSearch !== searchParams.toString()) {
+      setSearchParams(params, { replace: true })
+    }
+  }, [teamAPlayers, teamBPlayers, setSearchParams, searchParams])
 
   // Save state for undo
   const saveForUndo = useCallback(() => {
@@ -156,11 +203,15 @@ function TradeCalculator() {
     }
   }
 
-  const teamAValue = calculateSideValue(teamAPlayers)
-  const teamBValue = calculateSideValue(teamBPlayers)
-  const fairness = calculateFairness(teamAValue, teamBValue)
-  const fairnessInfo = getFairnessLabel(fairness, teamAValue, teamBValue)
-  const recommendation = getTradeRecommendation(teamAPlayers, teamBPlayers)
+  // Calculate trade analysis with new value engine
+  const tradeAnalysis = useMemo(() => {
+    return analyzeTrade(teamAPlayers, teamBPlayers, valueSettings)
+  }, [teamAPlayers, teamBPlayers, valueSettings])
+
+  const teamAValue = tradeAnalysis.teamAValue
+  const teamBValue = tradeAnalysis.teamBValue
+  const fairness = tradeAnalysis.fairnessPercent
+  const fairnessInfo = { label: tradeAnalysis.label, class: tradeAnalysis.class }
 
   const hasTrade = teamAPlayers.length > 0 && teamBPlayers.length > 0
   const hasAnyPlayers = teamAPlayers.length > 0 || teamBPlayers.length > 0
@@ -178,10 +229,13 @@ function TradeCalculator() {
     // Find players closest to the value difference
     const candidates = players
       .filter(p => !excludeIds.has(p.id) && p.dynastyValue > 0)
-      .map(p => ({
-        player: p,
-        adjustedValue: calculateAdjustedValue(p),
-      }))
+      .map(p => {
+        const breakdown = getPlayerValueBreakdown(p, valueSettings)
+        return {
+          player: p,
+          adjustedValue: breakdown.total,
+        }
+      })
       .map(c => ({
         ...c,
         gap: Math.abs(c.adjustedValue - diff),
@@ -192,7 +246,7 @@ function TradeCalculator() {
     if (candidates.length === 0) return null
 
     return { losingSide, diff, candidates }
-  }, [hasTrade, teamAValue, teamBValue, fairnessInfo.class, allSelectedIds])
+  }, [hasTrade, teamAValue, teamBValue, fairnessInfo.class, allSelectedIds, valueSettings])
 
   // Trigger confetti on fair trade
   useEffect(() => {
@@ -248,9 +302,64 @@ function TradeCalculator() {
     return breakdown
   }
 
+  // Copy shareable link
+  const handleCopyLink = () => {
+    const url = window.location.href
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success('Trade link copied to clipboard!')
+    }).catch(() => {
+      toast.error('Failed to copy link')
+    })
+  }
+
   return (
     <div>
       <Confetti trigger={showConfetti} key={confettiKey.current} />
+      <LeagueSettings isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* Sticky Trade Summary Header */}
+      {hasTrade && (
+        <div className="trade-summary-header">
+          <div className="trade-summary-values">
+            <div className="summary-side">
+              <span className="summary-label">Team A</span>
+              <span className="summary-value">{formatValue(teamAValue)}</span>
+            </div>
+            <div className="summary-vs">
+              <span className={`summary-fairness ${fairnessInfo.class}`}>
+                {fairnessInfo.label}
+              </span>
+              <div className="summary-confidence" title={`${tradeAnalysis.confidence}% confidence`}>
+                <div
+                  className="confidence-fill"
+                  style={{ width: `${tradeAnalysis.confidence}%` }}
+                />
+              </div>
+            </div>
+            <div className="summary-side">
+              <span className="summary-label">Team B</span>
+              <span className="summary-value">{formatValue(teamBValue)}</span>
+            </div>
+          </div>
+          <p className="summary-explanation">{tradeAnalysis.explanation}</p>
+        </div>
+      )}
+
+      {/* Settings Bar */}
+      <div className="trade-toolbar">
+        <button className="toolbar-btn" onClick={() => setShowSettings(true)}>
+          <span className="toolbar-icon">⚙️</span>
+          <span className="toolbar-label">
+            {settings.qbFormat === 'superflex' ? 'SF' : settings.qbFormat.toUpperCase()} · {settings.scoring === 'ppr' ? 'PPR' : settings.scoring === 'half-ppr' ? '0.5 PPR' : 'STD'} · {settings.format.charAt(0).toUpperCase() + settings.format.slice(1)}
+          </span>
+        </button>
+        {hasTrade && (
+          <button className="toolbar-btn" onClick={handleCopyLink}>
+            <span className="toolbar-icon">🔗</span>
+            <span className="toolbar-label">Share Trade</span>
+          </button>
+        )}
+      </div>
 
       <div className="trade-calculator">
         {/* Team A Side */}
@@ -259,6 +368,8 @@ function TradeCalculator() {
           onDragOver={(e) => handleDragOver(e, 'A')}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, 'A')}
+          role="region"
+          aria-label="Team A trade assets"
         >
           <h2 className="trade-side-header">Team A Receives</h2>
 
@@ -270,7 +381,10 @@ function TradeCalculator() {
           <div className={`trade-players ${dragOverSide === 'A' ? 'drag-over' : ''}`}>
             {teamAPlayers.length === 0 ? (
               <div className="trade-players-empty">
-                <p>Add players or drag here</p>
+                <div className="empty-state">
+                  <p>Add players or drag here</p>
+                  <span className="empty-hint">Try: Ja'Marr Chase, 2026 1st</span>
+                </div>
               </div>
             ) : (
               teamAPlayers.map(player => (
@@ -282,6 +396,7 @@ function TradeCalculator() {
                   isWatched={isWatched(player.id)}
                   showDetails
                   draggable
+                  valueSettings={valueSettings}
                 />
               ))
             )}
@@ -302,6 +417,8 @@ function TradeCalculator() {
           onDragOver={(e) => handleDragOver(e, 'B')}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, 'B')}
+          role="region"
+          aria-label="Team B trade assets"
         >
           <h2 className="trade-side-header">Team B Receives</h2>
 
@@ -313,7 +430,10 @@ function TradeCalculator() {
           <div className={`trade-players ${dragOverSide === 'B' ? 'drag-over' : ''}`}>
             {teamBPlayers.length === 0 ? (
               <div className="trade-players-empty">
-                <p>Add players or drag here</p>
+                <div className="empty-state">
+                  <p>Add players or drag here</p>
+                  <span className="empty-hint">Try: Bijan Robinson, 2027 2nd</span>
+                </div>
               </div>
             ) : (
               teamBPlayers.map(player => (
@@ -325,6 +445,7 @@ function TradeCalculator() {
                   isWatched={isWatched(player.id)}
                   showDetails
                   draggable
+                  valueSettings={valueSettings}
                 />
               ))
             )}
@@ -359,16 +480,22 @@ function TradeCalculator() {
             )}
 
             <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>
-              {getValueDifference(teamAValue, teamBValue)}
+              {tradeAnalysis.explanation}
             </p>
 
-            {hasTrade && recommendation.recommendations.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
-                {recommendation.recommendations.map((rec, i) => (
-                  <p key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                    {rec}
-                  </p>
-                ))}
+            {/* Context indicators */}
+            {(settings.teamContext.teamAStrategy !== 'neutral' || settings.teamContext.teamBStrategy !== 'neutral') && (
+              <div className="trade-context-badges">
+                {settings.teamContext.teamAStrategy !== 'neutral' && (
+                  <span className={`context-badge ${settings.teamContext.teamAStrategy}`}>
+                    Team A: {settings.teamContext.teamAStrategy}
+                  </span>
+                )}
+                {settings.teamContext.teamBStrategy !== 'neutral' && (
+                  <span className={`context-badge ${settings.teamContext.teamBStrategy}`}>
+                    Team B: {settings.teamContext.teamBStrategy}
+                  </span>
+                )}
               </div>
             )}
 

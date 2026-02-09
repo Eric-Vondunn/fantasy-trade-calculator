@@ -1,19 +1,45 @@
-import { useState, useRef, useEffect } from 'react'
-import { searchPlayers, getAggregateRanking, getPlayerById } from '../data/players'
-import { formatValue, calculateAdjustedValue } from '../utils/tradeLogic'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import Fuse from 'fuse.js'
+import { getAggregateRanking, players } from '../data/players'
+import { formatValue, getPlayerValueBreakdown } from '../utils/valueEngine'
+import { useLeagueSettings } from '../context/LeagueSettingsContext'
+import { useWatchlist } from '../hooks/useLocalStorage'
 
 function PlayerSearch({ onSelect, excludeIds = [] }) {
+  const { settings, multipliers, replacementLevels } = useLeagueSettings()
+  const { watchlist } = useWatchlist()
+  const valueSettings = useMemo(() => ({
+    ...settings,
+    multipliers,
+    replacementLevels
+  }), [settings, multipliers, replacementLevels])
+
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
+  const [filters, setFilters] = useState({ position: null, showFavorites: false })
+  const [showFilters, setShowFilters] = useState(false)
   const wrapperRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Fuse.js instance for fuzzy search
+  const fuse = useMemo(() => new Fuse(players, {
+    keys: [
+      { name: 'name', weight: 0.7 },
+      { name: 'team', weight: 0.2 },
+      { name: 'position', weight: 0.1 }
+    ],
+    threshold: 0.3,
+    includeScore: true,
+    minMatchCharLength: 2
+  }), [])
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false)
+        setShowFilters(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -37,17 +63,36 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
 
   const handleSearch = (value) => {
     setQuery(value)
+
+    let filtered = []
+
     if (value.length >= 2) {
-      const filtered = searchPlayers(value)
-        .filter(p => !excludeIds.includes(p.id))
-        .slice(0, 10)
-      setResults(filtered)
-      setIsOpen(true)
-      setHighlightedIndex(0)
-    } else {
-      setResults([])
-      setIsOpen(false)
+      // Use fuzzy search
+      const fuseResults = fuse.search(value)
+      filtered = fuseResults.map(r => r.item)
+    } else if (filters.position || filters.showFavorites) {
+      // Show filtered results even without query
+      filtered = players
     }
+
+    // Apply filters
+    if (filters.position) {
+      filtered = filtered.filter(p => p.position === filters.position)
+    }
+
+    if (filters.showFavorites) {
+      filtered = filtered.filter(p => watchlist.includes(p.id))
+    }
+
+    // Exclude already selected
+    filtered = filtered.filter(p => !excludeIds.includes(p.id))
+
+    // Limit results
+    filtered = filtered.slice(0, 15)
+
+    setResults(filtered)
+    setIsOpen(filtered.length > 0 || value.length >= 2)
+    setHighlightedIndex(0)
   }
 
   const handleSelect = (player) => {
@@ -75,22 +120,113 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
     } else if (e.key === 'Escape') {
       setIsOpen(false)
       setResults([])
+      setShowFilters(false)
       inputRef.current?.blur()
     }
   }
 
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value }
+    setFilters(newFilters)
+
+    // Re-run search with new filters
+    if (query.length >= 2 || newFilters.position || newFilters.showFavorites) {
+      let filtered = []
+
+      if (query.length >= 2) {
+        const fuseResults = fuse.search(query)
+        filtered = fuseResults.map(r => r.item)
+      } else {
+        filtered = players
+      }
+
+      if (newFilters.position) {
+        filtered = filtered.filter(p => p.position === newFilters.position)
+      }
+
+      if (newFilters.showFavorites) {
+        filtered = filtered.filter(p => watchlist.includes(p.id))
+      }
+
+      filtered = filtered.filter(p => !excludeIds.includes(p.id)).slice(0, 15)
+      setResults(filtered)
+      setIsOpen(filtered.length > 0)
+    }
+  }
+
+  const clearFilters = () => {
+    setFilters({ position: null, showFavorites: false })
+    if (query.length < 2) {
+      setResults([])
+      setIsOpen(false)
+    } else {
+      handleSearch(query)
+    }
+  }
+
+  const hasActiveFilters = filters.position || filters.showFavorites
+
   return (
     <div className="player-search" ref={wrapperRef}>
-      <span className="player-search-icon">🔍</span>
-      <input
-        ref={inputRef}
-        type="text"
-        value={query}
-        onChange={(e) => handleSearch(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Search players... (press / to focus)"
-        onFocus={() => query.length >= 2 && setIsOpen(true)}
-      />
+      <div className="search-input-row">
+        <span className="player-search-icon">🔍</span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => handleSearch(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search players... (press / to focus)"
+          onFocus={() => {
+            if (query.length >= 2 || hasActiveFilters) {
+              handleSearch(query)
+            }
+          }}
+        />
+        <button
+          className={`filter-toggle ${showFilters || hasActiveFilters ? 'active' : ''}`}
+          onClick={() => setShowFilters(!showFilters)}
+          title="Toggle filters"
+        >
+          <span className="filter-icon">⚙</span>
+          {hasActiveFilters && <span className="filter-badge" />}
+        </button>
+      </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="search-filters">
+          <div className="filter-row">
+            <label>Position:</label>
+            <div className="filter-buttons">
+              {['QB', 'RB', 'WR', 'TE', 'PICK'].map(pos => (
+                <button
+                  key={pos}
+                  className={`filter-btn ${filters.position === pos ? 'active' : ''}`}
+                  onClick={() => handleFilterChange('position', filters.position === pos ? null : pos)}
+                >
+                  {pos}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.showFavorites}
+                onChange={(e) => handleFilterChange('showFavorites', e.target.checked)}
+              />
+              Show favorites only
+            </label>
+            {hasActiveFilters && (
+              <button className="clear-filters" onClick={clearFilters}>
+                Clear filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {isOpen && results.length > 0 && (
         <div className="search-results">
@@ -106,14 +242,18 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
                   {player.position}
                 </div>
                 <div>
-                  <div className="search-result-name">{player.name}</div>
+                  <div className="search-result-name">
+                    {player.name}
+                    {watchlist.includes(player.id) && <span className="result-favorite">★</span>}
+                  </div>
                   <div className="search-result-team">
                     {player.team} | #{getAggregateRanking(player)}
+                    {player.age > 0 && ` | Age ${player.age}`}
                   </div>
                 </div>
               </div>
               <div className="search-result-value">
-                {formatValue(calculateAdjustedValue(player))}
+                {formatValue(getPlayerValueBreakdown(player, valueSettings).total)}
               </div>
             </div>
           ))}
@@ -127,12 +267,16 @@ function PlayerSearch({ onSelect, excludeIds = [] }) {
 
       {isOpen && query.length >= 2 && results.length === 0 && (
         <div className="search-results">
-          <div className="search-result-item">
+          <div className="search-result-item empty">
             <span>No players found</span>
+            {hasActiveFilters && (
+              <button className="clear-filters-link" onClick={clearFilters}>
+                Clear filters
+              </button>
+            )}
           </div>
         </div>
       )}
-
     </div>
   )
 }
