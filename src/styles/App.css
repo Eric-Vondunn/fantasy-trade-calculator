@@ -93,7 +93,7 @@ body {
 .navbar {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   box-shadow: var(--shadow);
   position: sticky;
   top: 0;
@@ -111,10 +111,11 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .navbar-logo {
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--dark-blue);
   text-decoration: none;
@@ -122,58 +123,202 @@ body {
   align-items: center;
   gap: 0.5rem;
   transition: color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.navbar-logo:hover {
+  color: var(--light-blue);
+}
+
+.logo-icon {
+  font-size: 1.25rem;
+}
+
+.logo-text {
+  font-weight: 700;
 }
 
 .navbar-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.25rem;
   list-style: none;
   align-items: center;
+  margin: 0;
+  padding: 0;
 }
 
-.navbar-links a {
+.navbar-links > li {
+  position: relative;
+}
+
+.navbar-links a,
+.navbar-links .dropdown-trigger {
   text-decoration: none;
   color: var(--text-secondary);
   font-weight: 500;
+  font-size: 0.875rem;
   transition: color var(--transition-fast), background var(--transition-fast);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .navbar-links a:hover,
-.navbar-links a.active {
+.navbar-links a.active,
+.navbar-links .dropdown-trigger:hover,
+.navbar-links .dropdown-trigger.active {
   color: var(--dark-blue);
-  background: var(--bg-card-hover);
+  background: var(--bg-hover);
+}
+
+[data-theme="dark"] .navbar-links a:hover,
+[data-theme="dark"] .navbar-links a.active,
+[data-theme="dark"] .navbar-links .dropdown-trigger:hover,
+[data-theme="dark"] .navbar-links .dropdown-trigger.active {
+  color: var(--light-blue);
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-arrow {
+  font-size: 0.625rem;
+  transition: transform var(--transition-fast);
+  margin-left: 0.125rem;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  min-width: 160px;
+  padding: 0.5rem 0;
+  list-style: none;
+  z-index: 200;
+  animation: fadeIn 0.15s ease;
+}
+
+.dropdown-menu li a {
+  display: block;
+  padding: 0.625rem 1rem;
+  border-radius: 0;
+  font-size: 0.875rem;
+}
+
+.dropdown-menu li a:hover {
+  background: var(--bg-hover);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.external-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.external-icon {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Mobile-only items (hidden on desktop) */
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1rem 1rem 0.5rem !important;
+  pointer-events: none;
 }
 
 /* Theme Toggle */
+.theme-toggle-wrapper {
+  margin-left: 0.5rem;
+}
+
 .theme-toggle {
-  background: var(--bg-card-hover);
-  border: 2px solid var(--border-color);
-  border-radius: 50px;
-  padding: 0.5rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.375rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
   transition: all var(--transition-fast);
 }
 
 .theme-toggle:hover {
-  border-color: var(--dark-blue);
-  transform: scale(1.05);
+  border-color: var(--light-blue);
+  background: var(--bg-card);
 }
 
+/* Mobile Menu Button */
 .mobile-menu-btn {
   display: none;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  padding: 0.5rem;
   cursor: pointer;
-  color: var(--dark-blue);
+  z-index: 101;
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+}
+
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--dark-blue);
+  border-radius: 2px;
+  transition: all var(--transition-fast);
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
 }
 
 /* Main Content */
@@ -2206,7 +2351,7 @@ body {
 @media (max-width: 768px) {
   /* Navbar */
   .navbar {
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 1rem;
   }
 
   .navbar-container {
@@ -2214,13 +2359,20 @@ body {
   }
 
   .navbar-logo {
-    font-size: 1.15rem;
-    white-space: normal;
-    line-height: 1.3;
+    font-size: 1rem;
   }
 
   .mobile-menu-btn {
     display: block;
+  }
+
+  /* Hide dropdown on mobile, show inline items instead */
+  .nav-dropdown {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block !important;
   }
 
   .navbar-links {
@@ -2237,31 +2389,39 @@ body {
     display: flex;
   }
 
-  .navbar-links li {
+  .navbar-links > li {
     width: 100%;
   }
 
-  .navbar-links a {
+  .navbar-links a,
+  .navbar-links .dropdown-trigger {
     display: block;
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 6px;
-    margin: 0.15rem 0;
-    font-size: 0.95rem;
+    margin: 0.125rem 0;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-primary);
-    border-bottom: none;
   }
 
   .navbar-links a:hover,
   .navbar-links a.active {
-    background: var(--bg-card-hover);
+    background: var(--bg-hover);
     color: var(--dark-blue);
   }
 
-  .navbar-links li:last-child {
-    display: flex;
-    justify-content: flex-start;
+  .theme-toggle-wrapper {
+    margin-left: 0;
     padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+  }
+
+  .theme-toggle-wrapper .theme-toggle {
+    width: 100%;
+    justify-content: center;
+    border-radius: 6px;
+    padding: 0.625rem;
     margin-top: 0.25rem;
     border-top: 1px solid var(--border-color);
   }
